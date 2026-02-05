@@ -2,6 +2,7 @@
 A personal Blog system built with Django, focusing on backend architecture, data modeling, and maintainable request flow design.
 This project allows users to register, log in, create blog posts, and leave comments, with proper authentication and permission control.
 
+![image](https://github.com/kktofu/Frank-Blog/blob/main/blog.jpg)
 ---
 
 ## Features
