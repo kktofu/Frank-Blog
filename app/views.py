@@ -35,7 +35,8 @@ def add_new_post(request):
     })
 
 def show_post(request,post_id):
-    post = BlogPost.objects.get(id=post_id)
+    #resolve n+1 in comment.author
+    post = BlogPost.objects.prefetch_related("parent_post__comment_author").get(id=post_id)
     comment_form = CommentForm()
     if request.method == "POST":
         comment_form = CommentForm(request.POST)
