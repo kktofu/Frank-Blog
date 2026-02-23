@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect,HttpResponseForbidden
 from django.urls import reverse
 from .forms import PostForm,RegisterForm,LoginForm,CommentForm
 from .models import BlogPost,Comment
@@ -15,24 +15,28 @@ def get_all_posts(request):
 
     })
 def add_new_post(request):
-    if request.method == "POST":
-        form = PostForm(request.POST)
-        if form.is_valid():
-            data = BlogPost(
-                title=form.cleaned_data['title'],
-                subtitle=form.cleaned_data['subtitle'],
-                date=date.today().strftime("%B %d, %Y"),
-                body=form.cleaned_data['body'],
-                author=form.cleaned_data['name'],
-                img_url=form.cleaned_data['url']
-            )
-            data.save()
-            return HttpResponseRedirect(reverse("get_all_posts"))
+    if not request.user.is_authenticated:
+        messages.error(request, "You need to login or register to add new post.")
+        return redirect('user_login')
     else:
-       form = PostForm()
-    return render(request,'make-post.html', {
-        'form':form,
-    })
+        if request.method == "POST":
+            form = PostForm(request.POST)
+            if form.is_valid():
+                data = BlogPost(
+                    title=form.cleaned_data['title'],
+                    subtitle=form.cleaned_data['subtitle'],
+                    date=date.today().strftime("%B %d, %Y"),
+                    body=form.cleaned_data['body'],
+                    author=request.user,
+                    img_url=form.cleaned_data['url']
+                )
+                data.save()
+                return HttpResponseRedirect(reverse("get_all_posts"))
+        else:
+           form = PostForm()
+        return render(request,'make-post.html', {
+                'form':form,
+        })
 
 def show_post(request,post_id):
     #resolve n+1 in comment.author
@@ -46,8 +50,8 @@ def show_post(request,post_id):
                 return redirect('user_login')
             new_comment = Comment(
                 text=comment_form.cleaned_data["comment_text"],
-                comment_author=User.username,
-                parent_post=post_id
+                comment_author=request.user,
+                parent_post=post
             )
             new_comment.save()
             return redirect('show_post',post_id=post_id)
@@ -57,6 +61,9 @@ def show_post(request,post_id):
     })
 def edit_post(request,post_id):
     post = BlogPost.objects.get(id=post_id)
+    if post.author != request.user:
+        messages.error(request, "You are not this POST AUTHOR.")
+        return redirect('show_post',post_id=post_id)
     edit_form = PostForm(initial={
         'title':post.title,
         'subtitle': post.subtitle,

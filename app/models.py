@@ -9,7 +9,7 @@ class BlogPost(models.Model):
     subtitle = models.CharField(max_length=250, null=False)
     date = models.CharField(max_length=250, null=False)
     body = RichTextField(null=False)
-    author = models.CharField(max_length=250, null=False)
+    author = models.ForeignKey(User,on_delete=models.CASCADE,related_name="post_author")
     img_url = models.CharField(max_length=250, null=False)
     objects = models.Manager()
 

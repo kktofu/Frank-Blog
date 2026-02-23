@@ -4,7 +4,6 @@ from ckeditor.widgets import CKEditorWidget
 class PostForm(forms.Form):
     title = forms.CharField(label='Blog Post Title', required=True)
     subtitle = forms.CharField(label="Subtitle", required=True)
-    name = forms.CharField(label="Your Name", required=True)
     url = forms.URLField(label="Blog Image URL", required=True)
     body = forms.CharField(label="Blog Content", widget = CKEditorWidget(),required=True)
 

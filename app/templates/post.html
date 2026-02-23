@@ -14,6 +14,11 @@
             <a href="#">{{ post.author }}</a>
             on {{ post.date }}
           </span>
+          {% if messages %}
+          {% for message in messages %}
+          <p class="col-lg-8 col-md-10 mx-auto">{{ message }}</p>
+          {% endfor %}
+          {% endif %}
         </div>
       </div>
     </div>
