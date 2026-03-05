@@ -17,3 +17,4 @@ class Comment(models.Model):
     text = RichTextField(null=False)
     comment_author = models.ForeignKey(User,on_delete=models.CASCADE,related_name="comment_author")
     parent_post = models.ForeignKey(BlogPost,on_delete=models.CASCADE,related_name="parent_post")
+    objects = models.Manager()
