@@ -29,21 +29,90 @@
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
         <!-- TODO:-Add CKEditor and render the form here -->
-        {% if is_edit %}
-        <form action="{% url 'edit_post' post_id=post.pk %}" method = "post">
+        <form id="post-form">
           {% csrf_token %}
           {% bootstrap_form form %}
-          <input class="btn btn-primary" type = "submit" value="OK">
+          <input class="btn btn-primary" type="submit" value="OK">
         </form>
-        {% else %}
-        <form action="{% url 'add_post'%}" method = "post">
-          {% csrf_token %}
-          {% bootstrap_form form %}
-          <input class="btn btn-primary" type = "submit" value="OK">
-        </form>
-        {% endif %}
       </div>
     </div>
   </div>
 </main>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function() {
+  const token = localStorage.getItem("access");
+  const user = localStorage.getItem("user");
+
+  {% if not is_edit %}
+  if (!token) {
+      alert("請先登入才能新增文章！");
+      window.location.href = "{% url 'user_login' %}";
+      return;
+  }
+  {% else %}
+  if (!token) {
+      alert("請先登入才能編輯文章！");
+      window.location.href = "{% url 'user_login' %}";
+      return;
+  }
+  if (user != "{{post.author}}") {
+      alert("你不是該作者無法修改文章！");
+      window.location.href = "{% url 'get_all_posts' %}";
+      return;
+  }
+  {% endif %}
+});
+
+document.getElementById("post-form").addEventListener("submit", function(e) {
+
+    e.preventDefault()
+
+    const token = localStorage.getItem("access")
+
+    for (let instance in CKEDITOR.instances) {
+        CKEDITOR.instances[instance].updateElement()
+    }
+
+    const formData = new FormData(this)
+
+    let url = ""
+    let method = ""
+
+    {% if is_edit %}
+      url = "/api/post/{{post.id}}/"
+      method = "PATCH"
+    {% else %}
+      url = "/api/post/"
+      method = "POST"
+    {% endif %}
+
+    const data = {
+      title: formData.get("title"),
+      subtitle: formData.get("subtitle"),
+      body: formData.get("body"),
+      img_url: formData.get("url")
+     }
+
+    authenticatedFetch(url, {
+      method: method,
+      headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+          "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+      {% if is_edit %}
+        window.location.href = "/app/post/{{post.id}}"
+      {% else %}
+        window.location.href = "/app/"
+      {% endif %}
+    })
+
+})
+</script>
 {% include "footer.html" %} {% endblock %}

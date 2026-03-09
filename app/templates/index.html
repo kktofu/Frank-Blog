@@ -20,24 +20,8 @@
 <div class="container px-4 px-lg-5">
   <div class="row gx-4 gx-lg-5 justify-content-center">
     <div class="col-md-10 col-lg-8 col-xl-7">
-      <!-- Post preview-->
-      {% for post in all_posts %}
-      <div class="post-preview">
-        <a href="{% url 'show_post' post_id=post.pk %}">
-          <h2 class="post-title">{{post.title}}</h2>
-          <h3 class="post-subtitle">{{ post.subtitle }}</h3>
-        </a>
-        <!-- TODO: Add code to delete posts below -->
-        <p class="post-meta">
-          Posted by
-          <a href="#">{{post.author.username}}</a>
-          on {{post.date}}
-          <a href="{% url 'delete_post' post_id=post.pk %}">✘</a>
-        </p>
-      </div>
-      <!-- Divider-->
-      <hr class="my-4" />
-      {% endfor %}
+      {% csrf_token %}
+      <div id="post-container"></div>
 
       <!-- New Post -->
       <div class="d-flex justify-content-end mb-4">
@@ -56,5 +40,54 @@
     </div>
   </div>
 </div>
+<script>
+  fetch("/api/post/")
+  .then(response => response.json())
+  .then(posts => {
 
+      const container = document.getElementById("post-container")
+      posts.forEach(post => {
+          const postHTML = `
+          <div class="post-preview">
+              <a href="post/${post.id}">
+                  <h2 class="post-title">${post.title}</h2>
+                  <h3 class="post-subtitle">${post.subtitle}</h3>
+              </a>
+              <p class="post-meta">
+                  Posted by
+                  <a href="#">${post.author}</a>
+                  on ${post.date}
+                  <button type="button" class="btn btn-light btn-sm" onclick="deletePost(${post.id})">✘</button>
+              </p>
+          </div>
+
+          <hr class="my-4"/>
+          `
+          container.innerHTML += postHTML
+      })
+  })
+
+  function deletePost(postId) {
+    if (!confirm("確定要刪除嗎？")) return;
+
+    const token = localStorage.getItem("access")
+
+    const csrfTokenElement = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (!csrfTokenElement) {
+        alert("錯誤：找不到 CSRF Token，請檢查後端模板設定。");
+        return;
+    }
+
+    authenticatedFetch(`/api/post/${postId}/`, {
+      method: "DELETE",
+      headers: {
+        "X-CSRFToken": csrfTokenElement.value,
+        "Authorization": `Bearer ${token}`
+      }
+    })
+    .then(()=>{
+        location.reload()
+    })
+}
+</script>
 {% include "footer.html" %}

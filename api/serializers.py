@@ -7,6 +7,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
         fields = '__all__'
+        read_only_fields = ["author","date"]
 
 class CommentSerializer(serializers.ModelSerializer):
     comment_author = serializers.ReadOnlyField(source='comment_author.username')

@@ -35,7 +35,7 @@
 
       <div class="col-lg-8 col-md-10 mx-auto">
         <!--Rendering login form here-->
-        <form action="{% url 'user_login' %}" method = "post">
+        <form id="login-form">
           {% csrf_token %}
           {% bootstrap_form form %}
           <input class="btn btn-primary" type = "submit" value="Login!">
@@ -45,5 +45,42 @@
   </div>
 </main>
 
+<script>
+
+document.getElementById("login-form").addEventListener("submit", function(e){
+
+    e.preventDefault()
+
+    const username = document.getElementById("id_name").value
+    const password = document.getElementById("id_password").value
+
+    fetch("/api/token/",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({
+            username: username,
+            password: password
+        })
+    })
+    .then(res => {
+        if(!res.ok){
+            alert("Login failed")
+            return
+        }
+        return res.json()
+    })
+    .then(data => {
+        localStorage.setItem("user", username)
+        localStorage.setItem("access", data.access)
+        localStorage.setItem("refresh", data.refresh)
+
+        window.location.href = "/app"
+    })
+
+})
+
+</script>
 
 {% include "footer.html" %} {% endblock %}

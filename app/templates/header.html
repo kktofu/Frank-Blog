@@ -69,30 +69,31 @@
                 >Home</a
               >
             </li>
-            {% if not user.is_authenticated %}
-            <li class="nav-item">
+
+            <li class="nav-item" id="login-link">
               <a
                 class="nav-link px-lg-3 py-3 py-lg-4"
                 href="{% url 'user_login' %}"
                 >Login</a
               >
             </li>
-            <li class="nav-item">
+            <li class="nav-item" id="register-link">
               <a
                 class="nav-link px-lg-3 py-3 py-lg-4"
                 href="{% url 'register' %}"
                 >Register</a
               >
             </li>
-            {% else %}
-            <li class="nav-item">
+
+            <li class="nav-item" id="logout-link" style="display:none">
               <a
                 class="nav-link px-lg-3 py-3 py-lg-4"
-                href="{% url 'user_logout' %}"
+                href = "#"
+                onclick="logout()"
                 >Log Out</a
               >
             </li>
-            {% endif %}
+
             <li class="nav-item">
               <a
                 class="nav-link px-lg-3 py-3 py-lg-4"
@@ -111,3 +112,31 @@
         </div>
       </div>
     </nav>
+    <script src="{% static 'js/auth.js' %}"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function(){
+
+        const token = localStorage.getItem("access")
+
+        const loginLink = document.getElementById("login-link")
+        const registerLink = document.getElementById("register-link")
+        const logoutLink = document.getElementById("logout-link")
+
+        if(token){
+          loginLink.style.display = "none"
+          registerLink.style.display = "none"
+          logoutLink.style.display = "block"
+        }else{
+          loginLink.style.display = "block"
+          registerLink.style.display = "block"
+          logoutLink.style.display = "none"
+        }
+      })
+
+      function logout(){
+        localStorage.removeItem("access")
+        localStorage.removeItem("refresh")
+        localStorage.removeItem("user")
+        window.location.href = "/app"
+      }
+    </script>

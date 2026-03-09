@@ -2,18 +2,18 @@
 {% load bootstrap5 %}
 {% load static %}
 <!-- Page Header-->
-<header class="masthead" style="background-image: url('{{post.img_url}}')">
+<header class="masthead" >
   <div class="container position-relative px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
         <div class="post-heading">
-          <h1>{{ post.title }}</h1>
-          <h2 class="subheading">{{ post.subtitle }}</h2>
-          <span class="meta"
-            >Posted by
-            <a href="#">{{ post.author }}</a>
-            on {{ post.date }}
+          <h1 id="post-title"></h1>
+          <h2 class="subheading" id="post-subtitle"></h2>
+          <span class="meta">Posted by
+            <a href="#" id="post-author"></a>
+            on <span id="post-date"></span>
           </span>
+
           {% if messages %}
           {% for message in messages %}
           <p class="col-lg-8 col-md-10 mx-auto">{{ message }}</p>
@@ -30,41 +30,126 @@
   <div class="container px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
-        {{ post.body|safe }}
+        <div id="post-body"></div>
 
         <div class="d-flex justify-content-end mb-4">
           <!-- TODO: Editing posts-->
           <a
             class="btn btn-primary float-right"
-            href="{% url 'edit_post' post_id=post.pk%}"
+            href="{% url 'edit_post' post_id=post_id%}"
             >Edit Post</a
           >
         </div>
-        <form action="{% url 'show_post' post_id=post.pk%}" method = "post">
-          {% csrf_token %}
-          {{ comment_form.media }}
-          {% bootstrap_form comment_form %}
-          <input class="btn btn-primary" type = "submit" value="submit Comment">
-        </form>
-          <!-- Show all comments -->
-
-        {% for comment in post.parent_post.all %}
-        <div class="comment-widgets mt-2">
-          <!-- Comment Row -->
-          <div class="d-flex flex-row comment-row m-t-0">
-            <div class="p-2">
-              <img src="{% static 'assets/img/user.jpg' %}" alt="user" width="50" class="rounded-circle">
-            </div>
-            <div class="comment-text w-100">
-                <h6 class="font-medium mb-0 mt-2">{{ comment.comment_author }}</h6>
-                <span class="m-b-10 d-block">{{ comment.text|striptags }}</span>
-            </div>
-          </div>
+        <div id="comment-section" style="display:none;">
+          <form id="comment-form">
+            {% csrf_token %}
+            {{ comment_form.media }}
+            {% bootstrap_form comment_form %}
+            <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+            <input class="btn btn-primary" type="submit" value="Submit Comment">
+          </form>
         </div>
-        {% endfor %}
+        <div id="login-message">
+          <p>
+          You need to <a href="{% url 'user_login' %}">login</a> to comment.
+          </p>
+        </div>
+
+          <!-- Show all comments -->
+        <div id="comment-list"></div>
+
       </div>
     </div>
   </div>
 </article>
+<script>
 
+  const token = localStorage.getItem("access");
+
+  const commentSection = document.getElementById("comment-section");
+  const loginMessage = document.getElementById("login-message");
+
+  if (token) {
+      commentSection.style.display = "block";
+      loginMessage.style.display = "none";
+  } else {
+      commentSection.style.display = "none";
+  }
+
+  const postId = "{{ post_id }}"
+  fetch(`/api/post/${postId}/`)
+  .then(res => res.json())
+  .then(post => {
+      const header = document.querySelector(".masthead");
+      header.style.backgroundImage = `url('${post.img_url}')`;
+      document.getElementById("post-title").innerText = post.title
+      document.getElementById("post-subtitle").innerText = post.subtitle
+      document.getElementById("post-author").innerText = post.author
+      document.getElementById("post-date").innerText = post.date
+      document.getElementById("post-body").innerHTML = post.body
+
+  })
+
+  function stripHtml(html) {
+      let doc = new DOMParser().parseFromString(html, 'text/html');
+      return doc.body.textContent || "";
+  }
+
+  fetch(`/api/comment/?post=${postId}`)
+  .then(res => res.json())
+  .then(comments => {
+      const container = document.getElementById("comment-list")
+
+      comments.forEach(comment => {
+          container.innerHTML += `
+          <div class="comment-widgets mt-2">
+            <!-- Comment Row -->
+            <div class="d-flex flex-row comment-row m-t-0">
+              <div class="p-2">
+                <img src="{% static 'assets/img/user.jpg' %}" alt="user" width="50" class="rounded-circle">
+              </div>
+              <div class="comment-text w-100">
+                  <h6 class="font-medium mb-0 mt-2">${comment.comment_author}</h6>
+                  <span class="m-b-10 d-block">${ stripHtml(comment.text) }</span>
+              </div>
+            </div>
+          </div>
+          `
+      })
+  })
+
+  document
+  .getElementById("comment-form")
+  .addEventListener("submit", function(e){
+
+      e.preventDefault()
+
+      const text = CKEDITOR.instances['id_comment_text'].getData();
+      const csrfToken = document.getElementById("csrf-token").value
+
+      authenticatedFetch("/api/comment/",{
+          method:"POST",
+          headers:{
+              "Content-Type":"application/json",
+              "X-CSRFToken": csrfToken,
+              "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+              text: text,
+              parent_post: postId
+          })
+      })
+      .then(res=>{
+          if(res.status === 403){
+              alert("Please login first")
+              return
+          }
+          return res.json()
+      })
+      .then(()=>{
+          location.reload()
+      })
+
+  })
+</script>
 {% include "footer.html" %}
