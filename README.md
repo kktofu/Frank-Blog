@@ -1,27 +1,29 @@
 # Blog System
-A personal Blog system built with Django, focusing on backend architecture, data modeling, and maintainable request flow design.
-This project allows users to register, log in, create blog posts, and leave comments, with proper authentication and permission control.
+A personal Blog system built with Django, focusing on backend architecture, RESTful API design, data modeling, and maintainable request flow.
+This project allows users to register, log in, create blog posts, and leave comments, with token-based authentication, permission control, and query optimization.
 
 ![image](https://github.com/kktofu/Frank-Blog/blob/main/blog.jpg)
 ---
 
 ## Features
-- User registration and authentication (Django Auth)
-- Blog post CRUD (Create, Read, Update, Delete)
+- User registration and authentication (Django Auth & JWT)
+- RESTful API for BlogPost and Comment (CRUD operations)
 - Comment system for logged-in users
 - Form validation and input sanitization using Django Forms
-- Relational data modeling with Django ORM
-- Permission control to prevent unauthorized operations
+- Relational data modeling with Django ORM (User → Post → Comment)
+- Object-level permission control to prevent unauthorized operations
+- Query optimization using select_related and prefetch_related to avoid N+1 query problems
 
 ---
 
 ## Tech Stack
 
-- **Backend:** Python, Django  
-- **Database:** PostgreSQL  
+- **Backend:** Python, Django, Django REST Framework  
+- **Database:** PostgreSQL / SQLite  
 - **ORM:** Django ORM  
-- **Authentication:** Django Auth  
+- **Authentication:** Django Auth, JWT  
 - **Form Handling:** Django Forms
+- **Testing:** Django TestCase
 
 ---
 
@@ -33,10 +35,11 @@ The project follows Django’s MTV (Model–Template–View) pattern:
   Define core data structures such as `BlogPost`, `Comment`, and `User`, with clear relationships and responsibilities.
 
 - **Forms:**  
-  Centralize validation and data cleaning logic to avoid duplicated validation code in views.
+  Centralize validation and data cleaning to ensure consistency across the app.
 
 - **Views:**  
-  Handle request flow, authentication checks, permission control, and response rendering.
+  Handle request flow, authentication, object-level permissions, and response rendering.
+Optimized database queries to prevent N+1 problems with select_related and prefetch_related.
 
 This separation improves readability, maintainability, and future extensibility.
 
@@ -44,10 +47,12 @@ This separation improves readability, maintainability, and future extensibility.
 
 ## What I Learned
 
-- How Django Forms improve validation consistency and code organization
-- Designing relational data models with clear responsibilities
-- Implementing authentication and permission control in a real-world web application
-- Writing backend code with maintainability in mind, not just functionality
+- Building RESTful APIs using Django REST Framework
+- Implementing JWT authentication for stateless security
+- Using object-level permission control to protect resources
+- Optimizing ORM queries with select_related and prefetch_related to avoid N+1 issues
+- Writing unit tests for models
+- Designing relational data models and maintaining code readability
 
 ---
 
@@ -55,7 +60,8 @@ This separation improves readability, maintainability, and future extensibility.
 
 - Add role-based permissions (e.g., admin / editor)
 - Implement pagination for posts and comments
-- Add unit tests for forms and views
+- Add filtering and search functionality for API endpoints
+- Continuous integration with automated tests
 - Deploy with Docker and CI/CD pipeline
 
 ---
