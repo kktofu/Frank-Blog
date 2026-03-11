@@ -10,7 +10,7 @@ from datetime import date
 
 
 class PostList(generics.ListCreateAPIView):
-    queryset = BlogPost.objects.select_related('author').prefetch_related('parent_post').all()
+    queryset = BlogPost.objects.select_related('author').all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -19,7 +19,7 @@ class PostList(generics.ListCreateAPIView):
                         date=date.today().strftime("%B %d, %Y"))
 
 class PostDetails(generics.RetrieveUpdateDestroyAPIView):
-    queryset = BlogPost.objects.select_related('author').prefetch_related('parent_post').all()
+    queryset = BlogPost.objects.select_related('author').all()
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                           IsAuthorOrReadOnly]
