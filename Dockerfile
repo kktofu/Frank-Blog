@@ -30,8 +30,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the source code into the container.
 COPY . .
 
+RUN python manage.py collectstatic --noinput
+
 # Expose the port that the application listens on.
 EXPOSE 8000
 
 # Run the application.
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "mysite.wsgi:application", "--bind", "0.0.0.0:8000"]
